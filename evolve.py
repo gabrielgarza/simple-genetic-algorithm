@@ -12,7 +12,7 @@ class Individual(object):
 
 class Population(object):
 
-    def __init__(self, pop_size, fitness_goal):
+    def __init__(self, pop_size=100, fitness_goal, mutate_prob=0.01, retain=0.2, random_retain=0.03):
         """
             Args
                 pop_size: size of population
@@ -27,6 +27,8 @@ class Population(object):
 
         self.fitness_history.append(grade)
 
+    def breed(self):
+
     def mutate(self):
 
     def evolve(self):
@@ -34,7 +36,7 @@ class Population(object):
 
 
 if __name__ == "__main__":
-    population = Population(pop_size=100, fitness_goal=500)
+    population = Population(pop_size=100, fitness_goal=500, mutate_prob=0.01, retain=0.2, random_retain=0.03)
     population.grade()
 
     EPISODES = 100
