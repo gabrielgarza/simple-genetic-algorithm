@@ -34,7 +34,7 @@ class Population(object):
 
 
 if __name__ == "__main__":
-    population = Population(pop_size=100, target=500)
+    population = Population(pop_size=100, fitness_goal=500)
     population.grade()
 
     EPISODES = 100
