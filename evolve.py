@@ -1,3 +1,5 @@
+
+
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
@@ -21,7 +23,7 @@ class Individual(object):
             Returns fitness of individual
             Fitness is the difference between
         """
-        target_sum = 500
+        target_sum = 450
         return abs(target_sum - np.sum(self.pixels))
 
 class Population(object):
@@ -38,6 +40,7 @@ class Population(object):
         self.random_retain = random_retain
         self.fitness_history = []
         self.parents = []
+        self.done = False
 
         # Create individuals
         self.individuals = []
@@ -51,8 +54,13 @@ class Population(object):
 
         pop_fitness = fitness_sum / self.pop_size
         self.fitness_history.append(pop_fitness)
+
+        # Set Done flag if we hit target
+        if int(round(pop_fitness)) == 0:
+            self.done = True
+
         if episode is not None:
-            if episode % 500 == 0:
+            if episode % 5 == 0:
                 print("Episode",episode,"Population fitness:", pop_fitness)
 
 
@@ -82,7 +90,6 @@ class Population(object):
         self.individuals = self.parents + children
 
     def evolve(self):
-        self.grade()
         self.select_parents()
         self.breed()
         # Reset parents and children
@@ -91,19 +98,23 @@ class Population(object):
 
 if __name__ == "__main__":
     pop = Population(pop_size=100, mutate_prob=0.01, retain=0.2, random_retain=0.03)
-    pop.grade()
 
+    SHOW_PLOT = False
     EPISODES = 5000
     for x in range(EPISODES):
-        pop.evolve()
         pop.grade(episode=x)
+        pop.evolve()
 
-    for i in pop.individuals:
-        print(i.pixels)
+        if pop.done:
+            print("Finished at episode:", x, ", Population fitness:", pop.fitness_history[-1])
+            break
+
 
     # Plot fitness history
-    matplotlib.use("MacOSX")
-    plt.plot(np.arange(len(population.fitness_history)), population.fitness_history)
-    plt.ylabel('Fitness')
-    plt.xlabel('Episodes')
-    plt.show()
+    if SHOW_PLOT:
+        print("Showing fitness history graph")
+        matplotlib.use("MacOSX")
+        plt.plot(np.arange(len(pop.fitness_history)), pop.fitness_history)
+        plt.ylabel('Fitness')
+        plt.xlabel('Episodes')
+        plt.show()
