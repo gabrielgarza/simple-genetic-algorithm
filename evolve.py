@@ -7,15 +7,15 @@ import random
 
 class Individual(object):
 
-    def __init__(self, pixels=None, mutate_prob=0.01):
-        if pixels is None:
-            self.pixels = np.random.randint(101, size=5)
+    def __init__(self, numbers=None, mutate_prob=0.01):
+        if numbers is None:
+            self.numbers = np.random.randint(101, size=10)
         else:
-            self.pixels = pixels
+            self.numbers = numbers
             # Mutate
             if mutate_prob > np.random.rand():
-                mutate_index = np.random.randint(len(self.pixels) - 1)
-                self.pixels[mutate_index] = np.random.randint(101)
+                mutate_index = np.random.randint(len(self.numbers) - 1)
+                self.numbers[mutate_index] = np.random.randint(101)
 
 
     def fitness(self):
@@ -23,8 +23,8 @@ class Individual(object):
             Returns fitness of individual
             Fitness is the difference between
         """
-        target_sum = 450
-        return abs(target_sum - np.sum(self.pixels))
+        target_sum = 900
+        return abs(target_sum - np.sum(self.numbers))
 
 class Population(object):
 
@@ -45,7 +45,7 @@ class Population(object):
         # Create individuals
         self.individuals = []
         for x in range(pop_size):
-            self.individuals.append(Individual(pixels=None,mutate_prob=self.mutate_prob))
+            self.individuals.append(Individual(numbers=None,mutate_prob=self.mutate_prob))
 
     def grade(self, episode=None):
         fitness_sum = 0
@@ -80,14 +80,15 @@ class Population(object):
     def breed(self):
         target_children_size = self.pop_size - len(self.parents)
         children = []
-        while len(children) < target_children_size:
-            father = random.choice(self.parents)
-            mother = random.choice(self.parents)
-            if father != mother:
-                child_pixels = [ random.choice(pixel_pair) for pixel_pair in zip(father.pixels, mother.pixels)]
-                child = Individual(child_pixels)
-                children.append(child)
-        self.individuals = self.parents + children
+        if len(self.parents) > 0:
+            while len(children) < target_children_size:
+                father = random.choice(self.parents)
+                mother = random.choice(self.parents)
+                if father != mother:
+                    child_numbers = [ random.choice(pixel_pair) for pixel_pair in zip(father.numbers, mother.numbers)]
+                    child = Individual(child_numbers)
+                    children.append(child)
+            self.individuals = self.parents + children
 
     def evolve(self):
         self.select_parents()
@@ -97,11 +98,16 @@ class Population(object):
         self.children = []
 
 if __name__ == "__main__":
-    pop = Population(pop_size=100, mutate_prob=0.01, retain=0.2, random_retain=0.03)
+    pop_size = 1000
+    mutate_prob = 0.01
+    retain = 0.1
+    random_retain = 0.03
 
-    SHOW_PLOT = False
-    EPISODES = 5000
-    for x in range(EPISODES):
+    pop = Population(pop_size=pop_size, mutate_prob=mutate_prob, retain=retain, random_retain=random_retain)
+
+    SHOW_PLOT = True
+    GENERATIONS = 5000
+    for x in range(GENERATIONS):
         pop.grade(episode=x)
         pop.evolve()
 
@@ -117,4 +123,5 @@ if __name__ == "__main__":
         plt.plot(np.arange(len(pop.fitness_history)), pop.fitness_history)
         plt.ylabel('Fitness')
         plt.xlabel('Episodes')
+        plt.title('Fitness - pop_size {} mutate_prob {} retain {} random_retain {}'.format(pop_size, mutate_prob, retain, random_retain))
         plt.show()
