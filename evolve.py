@@ -1,5 +1,3 @@
-
-
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
@@ -16,7 +14,6 @@ class Individual(object):
             if mutate_prob > np.random.rand():
                 mutate_index = np.random.randint(len(self.numbers) - 1)
                 self.numbers[mutate_index] = np.random.randint(101)
-
 
     def fitness(self):
         """
@@ -47,7 +44,10 @@ class Population(object):
         for x in range(pop_size):
             self.individuals.append(Individual(numbers=None,mutate_prob=self.mutate_prob))
 
-    def grade(self, episode=None):
+    def grade(self, generation=None):
+        """
+            Grade the generation by getting the average fitness of its individuals
+        """
         fitness_sum = 0
         for x in self.individuals:
             fitness_sum += x.fitness()
@@ -59,13 +59,16 @@ class Population(object):
         if int(round(pop_fitness)) == 0:
             self.done = True
 
-        if episode is not None:
-            if episode % 5 == 0:
-                print("Episode",episode,"Population fitness:", pop_fitness)
-
+        if generation is not None:
+            if generation % 5 == 0:
+                print("Episode",generation,"Population fitness:", pop_fitness)
 
     def select_parents(self):
-        # Sort individuals by fitness
+        """
+            Select the fittest individuals to be the parents of next generation (lower fitness it better in this case)
+            Also select a some random non-fittest individuals to help get us out of local maximums
+        """
+        # Sort individuals by fitness (we use reversed because in this case lower fintess is better)
         self.individuals = list(reversed(sorted(self.individuals, key=lambda x: x.fitness(), reverse=True)))
         # Keep the fittest as parents for next gen
         retain_length = self.retain * len(self.individuals)
@@ -78,6 +81,9 @@ class Population(object):
                 self.parents.append(unfit)
 
     def breed(self):
+        """
+            Crossover the parents to generate children and new generation of individuals
+        """
         target_children_size = self.pop_size - len(self.parents)
         children = []
         if len(self.parents) > 0:
@@ -91,9 +97,11 @@ class Population(object):
             self.individuals = self.parents + children
 
     def evolve(self):
+        # 1. Select fittest
         self.select_parents()
+        # 2. Create children and new generation
         self.breed()
-        # Reset parents and children
+        # 3. Reset parents and children
         self.parents = []
         self.children = []
 
@@ -108,13 +116,12 @@ if __name__ == "__main__":
     SHOW_PLOT = True
     GENERATIONS = 5000
     for x in range(GENERATIONS):
-        pop.grade(episode=x)
+        pop.grade(generation=x)
         pop.evolve()
 
         if pop.done:
-            print("Finished at episode:", x, ", Population fitness:", pop.fitness_history[-1])
+            print("Finished at generation:", x, ", Population fitness:", pop.fitness_history[-1])
             break
-
 
     # Plot fitness history
     if SHOW_PLOT:
@@ -122,6 +129,6 @@ if __name__ == "__main__":
         matplotlib.use("MacOSX")
         plt.plot(np.arange(len(pop.fitness_history)), pop.fitness_history)
         plt.ylabel('Fitness')
-        plt.xlabel('Episodes')
+        plt.xlabel('Generations')
         plt.title('Fitness - pop_size {} mutate_prob {} retain {} random_retain {}'.format(pop_size, mutate_prob, retain, random_retain))
         plt.show()
